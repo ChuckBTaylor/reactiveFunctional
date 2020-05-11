@@ -1,7 +1,10 @@
 package com.wirebraincoffee.productapifunctional.handler;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
 import static org.springframework.web.reactive.function.BodyInserters.fromValue;
+
+import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,6 +13,7 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.wirebraincoffee.productapifunctional.model.Product;
+import com.wirebraincoffee.productapifunctional.model.ProductEvent;
 import com.wirebraincoffee.productapifunctional.repository.ProductRepository;
 
 import reactor.core.publisher.Flux;
@@ -57,6 +61,15 @@ public class ProductHandler {
 		String id = request.pathVariable("id");
 		Mono<Product> productMono = repository.findById(id);
 		return productMono.flatMap(product -> ServerResponse.ok().build(repository.delete(product)).switchIfEmpty(ServerResponse.notFound().build()));
+	}
+	
+	public Mono<ServerResponse> deleteAllProducts(ServerRequest request){
+		return ServerResponse.ok().build(repository.deleteAll());
+	}
+	
+	public Mono<ServerResponse> getProductEvents(ServerRequest request){
+		Flux<ProductEvent> eventsFlux = Flux.interval(Duration.ofSeconds(1)).map(val -> new ProductEvent("Product Event " + val, val)).take(100);
+		return ServerResponse.ok().contentType(TEXT_EVENT_STREAM).body(eventsFlux, ProductEvent.class);
 	}
 
 }
