@@ -1,23 +1,27 @@
 package com.wirebraincoffee.productapifunctional;
 
-import org.springframework.boot.CommandLineRunner;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
+import static org.springframework.web.reactive.function.server.RequestPredicates.DELETE;
+import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
+import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
+import static org.springframework.web.reactive.function.server.RequestPredicates.contentType;
+import static org.springframework.web.reactive.function.server.RequestPredicates.method;
+import static org.springframework.web.reactive.function.server.RequestPredicates.path;
+import static org.springframework.web.reactive.function.server.RouterFunctions.nest;
+import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.wirebraincoffee.productapifunctional.handler.ProductHandler;
 import com.wirebraincoffee.productapifunctional.model.Product;
 import com.wirebraincoffee.productapifunctional.repository.ProductRepository;
-
-import static org.springframework.web.reactive.function.server.RouterFunctions.nest;
-import static org.springframework.web.reactive.function.server.RouterFunctions.route;
-import static org.springframework.http.MediaType.*;
-import static org.springframework.web.reactive.function.server.RequestPredicates.*;
 
 import reactor.core.publisher.Flux;
 
@@ -43,9 +47,9 @@ public class ProductApiFunctionalApplication {
 	// @formatter:off
 		return nest(path("/products"),
 				nest(accept(APPLICATION_JSON).or(contentType(APPLICATION_JSON).or(accept(TEXT_EVENT_STREAM))),
-						route(method(HttpMethod.GET), handler::getAllProducts)
+						route(GET("/"), handler::getAllProducts)
 						.andRoute(method(HttpMethod.POST), handler::postProduct)
-						.andRoute(method(HttpMethod.DELETE), handler::deleteAllProducts)
+						.andRoute(DELETE("/"), handler::deleteAllProducts)
 						.andRoute(GET("/events"), handler::getProductEvents)
 						.andNest(path("/{id}"),
 								route(method(HttpMethod.GET), handler::getProduct)
@@ -55,6 +59,5 @@ public class ProductApiFunctionalApplication {
 				)
 		);
     // @formatter:on
-
 	}
 }
